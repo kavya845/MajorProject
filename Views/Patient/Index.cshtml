@@ -1,0 +1,63 @@
+@model IEnumerable<XRayDiagnosticSystem.Models.Patient>
+
+@{
+    ViewData["Title"] = "Patient Registry";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="fw-bold mb-0">Total Patients: @Model.Count()</h3>
+        <p class="text-muted">Manage and register patient records for diagnostic imaging.</p>
+    </div>
+    <a asp-action="Create" class="btn btn-premium">
+        <i class="fas fa-plus me-2"></i> Register New Patient
+    </a>
+</div>
+
+<div class="glass-card">
+    <table class="table custom-table">
+        <thead>
+            <tr style="background: transparent; box-shadow: none;">
+                <th>PATIENT NAME</th>
+                <th>AGE / GENDER</th>
+                <th>CONTACT</th>
+                <th>ADMITTED ON</th>
+                <th class="text-end">ACTIONS</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (!Model.Any())
+            {
+                <tr>
+                    <td colspan="5" class="text-center py-5">
+                        <i class="fas fa-user-slash fa-3x text-muted mb-3 d-block"></i>
+                        <span class="text-muted">No patient records found.</span>
+                    </td>
+                </tr>
+            }
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>
+                        <div class="d-flex align-items-center">
+                            <div class="avatar-circle me-3" style="width: 40px; height: 40px; background: #e2e8f0; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-user text-primary"></i>
+                            </div>
+                            <span class="fw-bold">@item.FullName</span>
+                        </div>
+                    </td>
+                    <td>
+                        <span class="badge bg-light text-dark p-2">@item.Age Yrs</span>
+                        <span class="badge bg-soft-blue text-primary p-2">@item.Gender</span>
+                    </td>
+                    <td>@item.ContactNumber</td>
+                    <td>@item.CreatedAt.ToString("MMM dd, yyyy")</td>
+                    <td class="text-end">
+                        <a asp-controller="Diagnosis" asp-action="Reports" asp-route-patientId="@item.PatientId" class="btn btn-sm btn-outline-primary rounded-pill px-3">View Scans</a>
+                        <button class="btn btn-sm btn-link text-muted"><i class="fas fa-ellipsis-v"></i></button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

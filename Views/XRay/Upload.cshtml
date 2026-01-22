@@ -1,0 +1,93 @@
+@{
+    ViewData["Title"] = "Radiology Intake";
+}
+
+<style>
+    :root {
+        --medical-blue: #0056b3;
+    }
+    .btn-medical {
+        background-color: var(--medical-blue);
+        color: white;
+        border-radius: 8px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    .btn-medical:hover {
+        background-color: #004494;
+        color: white;
+        transform: translateY(-1px);
+    }
+    .medical-card {
+        border-top: 5px solid var(--medical-blue);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        border-radius: 12px;
+        background: white;
+        padding: 2.5rem;
+    }
+    .form-label {
+        color: #495057;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+</style>
+
+<div class="row justify-content-center mt-5">
+    <div class="col-md-6">
+        <div class="medical-card">
+            <h2 class="text-center mb-4" style="color: var(--medical-blue);">
+                <i class="fas fa-notes-medical me-2"></i>Radiology Intake
+            </h2>
+            <p class="text-center text-muted mb-5">Ensure clinical metadata is accurate before starting zero-click analysis.</p>
+
+            <form asp-action="Upload" method="post" enctype="multipart/form-data">
+                <div class="mb-4">
+                    <label class="form-label">Patient Record</label>
+                    <select name="patientId" class="form-select p-3" required>
+                        <option value="">-- Select Patient --</option>
+                        @foreach (System.Data.DataRow patient in ViewBag.Patients)
+                        {
+                            <option value="@patient["PatientID"]">@patient["FullName"] (@patient["PatientID"])</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label">Body Part Focus (Mandatory)</label>
+                    <div class="d-flex gap-3">
+                        <div class="form-check border p-3 rounded-3 flex-fill">
+                            <input class="form-check-input ms-1" type="radio" name="bodyPart" id="partChest" value="Chest" required>
+                            <label class="form-check-label ms-4 fw-bold" for="partChest">Chest</label>
+                        </div>
+                        <div class="form-check border p-3 rounded-3 flex-fill">
+                            <input class="form-check-input ms-1" type="radio" name="bodyPart" id="partHand" value="Hand" required>
+                            <label class="form-check-label ms-4 fw-bold" for="partHand">Hand</label>
+                        </div>
+                        <div class="form-check border p-3 rounded-3 flex-fill">
+                            <input class="form-check-input ms-1" type="radio" name="bodyPart" id="partLeg" value="Leg" required>
+                            <label class="form-check-label ms-4 fw-bold" for="partLeg">Leg</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label">X-Ray Imagery</label>
+                    <input type="file" name="xRayImage" class="form-control p-2" required />
+                </div>
+
+                @if (!ViewData.ModelState.IsValid)
+                {
+                    <div class="alert alert-danger py-2 small">
+                        @Html.ValidationSummary(false, "")
+                    </div>
+                }
+
+                <div class="d-grid mt-5">
+                    <button type="submit" class="btn btn-medical py-3 fs-5 shadow-sm">
+                        Generate Diagnostic Report
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

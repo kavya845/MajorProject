@@ -1,0 +1,56 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - X-Ray Diagnostics</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+</head>
+<body>
+    <div class="sidebar">
+        <div class="brand">
+            <i class="fas fa-microscope"></i> X-RAY CORE
+        </div>
+        <nav>
+            <a class="nav-link active" asp-controller="Home" asp-action="Index">
+                <i class="fas fa-th-large"></i> Dashboard
+            </a>
+            <a class="nav-link" asp-controller="Patient" asp-action="Index">
+                <i class="fas fa-user-injured"></i> Patients
+            </a>
+            <a class="nav-link" asp-controller="XRay" asp-action="Upload">
+                <i class="fas fa-file-upload"></i> Upload X-Ray
+            </a>
+            <a class="nav-link" asp-controller="Diagnosis" asp-action="Reports">
+                <i class="fas fa-file-medical-alt"></i> Reports
+            </a>
+            <hr style="border-color: rgba(255,255,255,0.1)">
+            <a class="nav-link" asp-controller="Account" asp-action="Logout">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </a>
+        </nav>
+    </div>
+
+    <div class="main-content">
+        <header class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="fw-bold text-dark">@ViewData["Title"]</h2>
+            <div class="user-profile glass-card p-2 px-3 d-flex align-items-center" style="margin-bottom: 0;">
+                <span class="me-2 fw-semibold">Admin</span>
+                <i class="fas fa-user-circle fa-lg text-primary"></i>
+            </div>
+        </header>
+
+        <main role="main" class="pb-3 fade-in">
+            @RenderBody()
+        </main>
+    </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>
