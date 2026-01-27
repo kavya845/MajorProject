@@ -1,0 +1,56 @@
+@{
+    ViewData["Title"] = "Upload X-Ray";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="glass-card fade-in p-5">
+            <div class="text-center mb-4">
+                <div class="icon-circle bg-soft-blue text-primary mx-auto mb-3">
+                    <i class="fas fa-x-ray fa-2x"></i>
+                </div>
+                <h3 class="fw-bold">Upload New Scan</h3>
+                <p class="text-muted">Securely upload your X-Ray for automated diagnosis.</p>
+            </div>
+
+            <form asp-action="UploadScan" method="post" enctype="multipart/form-data">
+                <div class="mb-4">
+                    <label class="form-label fw-bold">Select Body Part</label>
+                    <div class="row g-2">
+                        <div class="col-4">
+                            <input type="radio" class="btn-check" name="bodyPart" value="Chest" id="part1" checked>
+                            <label class="btn btn-outline-primary w-100 py-3" for="part1">
+                                <i class="fas fa-lungs d-block mb-1"></i> Chest
+                            </label>
+                        </div>
+                        <div class="col-4">
+                            <input type="radio" class="btn-check" name="bodyPart" value="Hand" id="part2">
+                            <label class="btn btn-outline-primary w-100 py-3" for="part2">
+                                <i class="fas fa-hand-paper d-block mb-1"></i> Hand
+                            </label>
+                        </div>
+                        <div class="col-4">
+                            <input type="radio" class="btn-check" name="bodyPart" value="Leg" id="part3">
+                            <label class="btn btn-outline-primary w-100 py-3" for="part3">
+                                <i class="fas fa-bone d-block mb-1"></i> Leg
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label fw-bold">X-Ray Image File</label>
+                    <input type="file" name="file" class="form-control form-control-lg" accept=".jpg,.jpeg,.png" required />
+                    <div class="form-text">Supported formats: JPG, PNG (Max 10MB)</div>
+                </div>
+
+                <div class="d-grid">
+                    <button type="submit" class="btn btn-premium py-3">
+                        <i class="fas fa-robot me-2"></i> Upload & Analyze
+                    </button>
+                    <a asp-action="Index" class="btn btn-link text-muted mt-2">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

@@ -15,22 +15,50 @@
             <i class="fas fa-microscope"></i> X-RAY CORE
         </div>
         <nav>
-            <a class="nav-link active" asp-controller="Home" asp-action="Index">
-                <i class="fas fa-th-large"></i> Dashboard
-            </a>
-            <a class="nav-link" asp-controller="Patient" asp-action="Index">
-                <i class="fas fa-user-injured"></i> Patients
-            </a>
-            <a class="nav-link" asp-controller="XRay" asp-action="Upload">
-                <i class="fas fa-file-upload"></i> Upload X-Ray
-            </a>
-            <a class="nav-link" asp-controller="Diagnosis" asp-action="Reports">
-                <i class="fas fa-file-medical-alt"></i> Reports
-            </a>
-            <hr style="border-color: rgba(255,255,255,0.1)">
-            <a class="nav-link" asp-controller="Account" asp-action="Logout">
-                <i class="fas fa-sign-out-alt"></i> Logout
-            </a>
+            @{
+                var role = Context.Session.GetString("Role");
+                var username = Context.Session.GetString("Username") ?? "Guest";
+            }
+            
+            @if (role == "Admin")
+            {
+                <a class="nav-link" asp-controller="Admin" asp-action="Index">
+                    <i class="fas fa-th-large"></i> Dashboard
+                </a>
+                <a class="nav-link" asp-controller="Admin" asp-action="Patients">
+                    <i class="fas fa-user-injured"></i> All Patients
+                </a>
+                <a class="nav-link" asp-controller="Diagnosis" asp-action="Reports">
+                    <i class="fas fa-file-medical-alt"></i> All Reports
+                </a>
+               
+                <hr style="border-color: rgba(255,255,255,0.1)">
+                <a class="nav-link" asp-controller="Auth" asp-action="Logout">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </a>
+            }
+            else if (role == "Patient")
+            {
+                <a class="nav-link" asp-controller="PatientPanel" asp-action="Index">
+                    <i class="fas fa-th-large"></i> My Dashboard
+                </a>
+                <a class="nav-link" asp-controller="PatientPanel" asp-action="UploadScan">
+                    <i class="fas fa-cloud-upload-alt"></i> Upload Scan
+                </a>
+                <hr style="border-color: rgba(255,255,255,0.1)">
+                <a class="nav-link" asp-controller="Auth" asp-action="Logout">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </a>
+            }
+            else
+            {
+                <a class="nav-link" asp-controller="Auth" asp-action="Login">
+                    <i class="fas fa-sign-in-alt"></i> Login
+                </a>
+                <a class="nav-link" asp-controller="Auth" asp-action="Register">
+                    <i class="fas fa-user-plus"></i> Register
+                </a>
+            }
         </nav>
     </div>
 
@@ -38,7 +66,7 @@
         <header class="d-flex justify-content-between align-items-center mb-4">
             <h2 class="fw-bold text-dark">@ViewData["Title"]</h2>
             <div class="user-profile glass-card p-2 px-3 d-flex align-items-center" style="margin-bottom: 0;">
-                <span class="me-2 fw-semibold">Admin</span>
+                <span class="me-2 fw-semibold">@username</span>
                 <i class="fas fa-user-circle fa-lg text-primary"></i>
             </div>
         </header>

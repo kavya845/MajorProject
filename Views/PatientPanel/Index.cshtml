@@ -1,0 +1,58 @@
+@using System.Data
+@model DataTable
+@{
+    ViewData["Title"] = "My Dashboard";
+}
+
+<div class="row align-items-center mb-5">
+    <div class="col-md-8">
+        <h2 class="fw-bold">My Medical Records</h2>
+        <p class="text-muted">View your diagnostic history and uploading new scans.</p>
+    </div>
+    <div class="col-md-4 text-end">
+        <a asp-action="UploadScan" class="btn btn-premium py-2 px-4 rounded-pill shadow-sm">
+            <i class="fas fa-cloud-upload-alt me-2"></i> Upload New Scan
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    @if (Model.Rows.Count == 0)
+    {
+        <div class="col-12 text-center py-5">
+            <div class="glass-card">
+                <i class="fas fa-folder-open fa-3x text-muted mb-3 d-block"></i>
+                <h5 class="text-muted">No records found. Upload your first scan.</h5>
+            </div>
+        </div>
+    }
+    
+    @foreach (DataRow row in Model.Rows)
+    {
+        <div class="col-md-4 mb-4">
+            <div class="glass-card h-100 p-0 overflow-hidden report-card animate-slide-up">
+                <div class="position-relative" style="height: 200px; background-color: #000;">
+                    <img src="@row["ImagePath"]" class="w-100 h-100" style="object-fit: contain;" />
+                    <span class="badge bg-dark position-absolute top-0 end-0 m-3">@row["BodyPart"]</span>
+                </div>
+                <div class="p-4">
+                    <div class="small text-muted mb-2">@Convert.ToDateTime(row["UploadDate"]).ToString("MMM dd, yyyy")</div>
+                    
+                    @if (row["DiagnosisResult"] != DBNull.Value)
+                    {
+                        <h5 class="fw-bold text-primary mb-1">@row["DiagnosisResult"]</h5>
+                        <p class="small text-muted mb-3">Severity: <span class="fw-bold">@row["Severity"]</span></p>
+                        <a asp-controller="Diagnosis" asp-action="Reports" asp-route-id="@row["XRayID"]" class="btn btn-sm btn-outline-primary w-100">View Full Report</a>
+                    }
+                    else
+                    {
+                        <div class="d-flex align-items-center text-warning">
+                            <div class="spinner-border spinner-border-sm me-2" role="status"></div>
+                            <span>Processing...</span>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+</div>

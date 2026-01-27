@@ -10,7 +10,7 @@ namespace XRayDiagnosticSystem.Models
 
     public class ScanImageData
     {
-        public string ImagePath { get; set; }
-        public string Label { get; set; }
+        public string ImagePath { get; set; } = string.Empty;
+        public string Label { get; set; } = string.Empty;
     }
 }
