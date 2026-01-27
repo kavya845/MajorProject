@@ -1,0 +1,81 @@
+@model XRayDiagnosticSystem.Models.Patient
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Patient Registration";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="glass-card fade-in p-4">
+            <h3 class="fw-bold mb-4 text-center">New Patient Registration</h3>
+            
+            @if (ViewBag.Error != null)
+            {
+                <div class="alert alert-danger">@ViewBag.Error</div>
+            }
+
+            <form asp-action="Register" method="post">
+                <div class="row g-3">
+                    <div class="col-md-12">
+                        <label class="form-label fw-bold">Full Name</label>
+                        <input asp-for="FullName" class="form-control" required />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Username</label>
+                        <input asp-for="Username" class="form-control" required />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Password</label>
+                        <div class="input-group">
+                            <input asp-for="Password" type="password" id="password" class="form-control" required />
+                            <button class="btn btn-outline-secondary" type="button" id="togglePassword">
+                                <i class="fas fa-eye" id="eyeIcon"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <!-- Detailed demographics -->
+                    <div class="col-md-6">
+                        <label class="form-label">Age</label>
+                        <input asp-for="Age" class="form-control" required />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Gender</label>
+                        <select asp-for="Gender" class="form-select">
+                            <option>Male</option>
+                            <option>Female</option>
+                        </select>
+                    </div>
+                    <div class="col-md-12">
+                        <label class="form-label">Contact Number</label>
+                        <input asp-for="ContactNumber" class="form-control" placeholder="+1 (555) 000-0000" />
+                    </div>
+                    <div class="col-md-12">
+                        <label class="form-label">Address</label>
+                        <input asp-for="Address" class="form-control" />
+                    </div>
+                </div>
+                <div class="d-grid mt-4">
+                    <button type="submit" class="btn btn-success py-2">Register Account</button>
+                </div>
+            </form>
+            <div class="text-center mt-3">
+                <a asp-action="Login">Already have an account? Login</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        const togglePassword = document.querySelector('#togglePassword');
+        const password = document.querySelector('#password');
+        const eyeIcon = document.querySelector('#eyeIcon');
+
+        togglePassword.addEventListener('click', function (e) {
+            const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
+            password.setAttribute('type', type);
+            eyeIcon.classList.toggle('fa-eye');
+            eyeIcon.classList.toggle('fa-eye-slash');
+        });
+    </script>
+}

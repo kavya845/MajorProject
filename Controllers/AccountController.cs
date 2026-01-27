@@ -13,14 +13,8 @@ namespace XRayDiagnosticSystem.Controllers
         [HttpPost]
         public IActionResult Login(string username, string password)
         {
-            // Simple hardcoded login for demo
-            if (username == "admin" && password == "admin123")
-            {
-                // In a real app, use Cookie Auth
-                return RedirectToAction("Index", "Home");
-            }
-            ViewBag.Error = "Invalid credentials";
-            return View();
+            // Redirect to AuthController for proper authentication
+            return RedirectToAction("Login", "Auth");
         }
 
         public IActionResult Logout()

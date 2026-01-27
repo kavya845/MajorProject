@@ -53,8 +53,11 @@
                     <td>@item.ContactNumber</td>
                     <td>@item.CreatedAt.ToString("MMM dd, yyyy")</td>
                     <td class="text-end">
-                        <a asp-controller="Diagnosis" asp-action="Reports" asp-route-patientId="@item.PatientId" class="btn btn-sm btn-outline-primary rounded-pill px-3">View Scans</a>
-                        <button class="btn btn-sm btn-link text-muted"><i class="fas fa-ellipsis-v"></i></button>
+                        <a asp-controller="Diagnosis" asp-action="Reports" asp-route-patientId="@item.PatientId" class="btn btn-sm btn-outline-primary rounded-pill px-3 me-2">View Scans</a>
+                        <a asp-action="Edit" asp-route-id="@item.PatientId" class="btn btn-sm btn-warning text-white rounded-circle me-1" title="Edit"><i class="fas fa-edit"></i></a>
+                        <form asp-action="Delete" asp-route-id="@item.PatientId" method="post" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this patient? This will delete all associated records.');">
+                            <button type="submit" class="btn btn-sm btn-danger rounded-circle" title="Delete"><i class="fas fa-trash"></i></button>
+                        </form>
                     </td>
                 </tr>
             }

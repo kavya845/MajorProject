@@ -20,7 +20,7 @@ namespace XRayDiagnosticSystem.Controllers
         [HttpGet]
         public async Task<IActionResult> Upload()
         {
-            var dt = await _db.ExecuteQueryAsync("SELECT PatientID, FullName FROM Patients");
+            var dt = await _db.ExecuteQueryAsync("SELECT PatientID, FullName FROM hospital.Patients");
             ViewBag.Patients = dt.Rows;
             return View();
         }
@@ -60,7 +60,7 @@ namespace XRayDiagnosticSystem.Controllers
                     new SqlParameter("@BodyPart", bodyPart)
                 };
 
-                var xRayId = await _db.ExecuteScalarAsync("INSERT INTO XRays (PatientID, ImagePath, TechnicianNotes, BodyPart) VALUES (@PatientId, @Path, @Notes, @BodyPart); SELECT SCOPE_IDENTITY();", pars);
+                var xRayId = await _db.ExecuteScalarAsync("INSERT INTO hospital.XRays (PatientID, ImagePath, TechnicianNotes, BodyPart) VALUES (@PatientId, @Path, @Notes, @BodyPart); SELECT SCOPE_IDENTITY();", pars);
                 
                 return RedirectToAction("AutomatedAnalyze", "Diagnosis", new { xRayId = xRayId });
             }

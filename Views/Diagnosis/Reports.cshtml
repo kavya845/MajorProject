@@ -32,6 +32,7 @@
     }
     .badge-normal { background-color: #d1e7dd; color: #0f5132; }
     .badge-abnormal { background-color: #f8d7da; color: #842029; }
+    .badge-mismatch { background-color: #fff3cd; color: #856404; }
     .diag-focus {
         font-size: 2.2rem;
         color: var(--medical-blue);
@@ -44,19 +45,45 @@
     <div class="text-center mb-5">
         <h1 class="fw-bold" style="color: var(--medical-blue);">Clinical Archive</h1>
         <p class="text-muted">Automated Diagnostic Records</p>
+        @if (ViewBag.IsFiltered == true)
+        {
+            <a asp-action="Reports" class="btn btn-sm btn-outline-secondary mt-2 rounded-pill">
+                <i class="fas fa-history me-1"></i> 
+            </a>
+        }
     </div>
 
     @foreach (DataRow row in Model.Rows)
     {
-        bool isAbnormal = row["Severity"]?.ToString() == "Critical";
+        string diagnosis = row["DiagnosisResult"]?.ToString() ?? "";
+        string severity = row["Severity"]?.ToString() ?? "";
+        string badgeClass;
+        string badgeText;
+
+        if (diagnosis.Contains("MISMATCH") || severity == "Moderate")
+        {
+             badgeClass = "badge-mismatch";
+             badgeText = "Mismatch";
+        }
+        else if (severity == "Critical")
+        {
+             badgeClass = "badge-abnormal";
+             badgeText = "Abnormal";
+        }
+        else
+        {
+             badgeClass = "badge-normal";
+             badgeText = "Normal";
+        }
+
         <div class="report-card animate-slide-up">
             <div class="p-4 border-bottom bg-light d-flex justify-content-between align-items-center">
                 <div>
                    <h5 class="fw-bold mb-0">@row["PatientName"]</h5>
                    <span class="small text-muted">ID: #@row["ReportID"] | @Convert.ToDateTime(row["GeneratedDate"]).ToString("MMM dd, yyyy")</span>
                 </div>
-                <span class="status-badge @(isAbnormal ? "badge-abnormal" : "badge-normal")">
-                    @(isAbnormal ? "Abnormal" : "Normal")
+                <span class="status-badge @badgeClass">
+                    @badgeText
                 </span>
             </div>
 
