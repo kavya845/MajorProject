@@ -58,13 +58,22 @@ namespace XRayDiagnosticSystem.Controllers
             bool isAbnormal = predictions.Any(p => p.Severity == "Critical" || p.Severity == "Moderate");
             string aiDetectedPart = predictions.FirstOrDefault()?.Anatomy ?? "Unknown";
 
-            // 3. VISUAL SANITY CHECK (Cross-reference Manual Selection with Image Scan)
+            // 3. VISUAL SANITY CHECK (Strict Anatomical Enforcement)
             bool isMismatch = false;
             
-            // Exact matching required for Hand vs Leg
-            if (bodyPart == "Chest" && aiDetectedPart != "Chest") isMismatch = true;
-            else if (bodyPart == "Hand" && aiDetectedPart != "Hand") isMismatch = true;
-            else if (bodyPart == "Leg" && aiDetectedPart != "Leg") isMismatch = true;
+            bool isPortrait = false;
+            using (var img = System.Drawing.Image.FromFile(absPath))
+            {
+                isPortrait = (float)img.Width / img.Height < 0.9f;
+            }
+            
+            // Rule 1: Chest selected, but AI saw limb (or vice-versa)
+            if (bodyPart == "Chest" && (aiDetectedPart == "Hand" || aiDetectedPart == "Leg")) isMismatch = true;
+            else if ((bodyPart == "Hand" || bodyPart == "Leg") && aiDetectedPart == "Chest" && !isPortrait) isMismatch = true;
+            
+            // Rule 2: Strict Extremity Matching (Hand vs Leg) per user request
+            else if (bodyPart == "Hand" && aiDetectedPart == "Leg") isMismatch = true;
+            else if (bodyPart == "Leg" && aiDetectedPart == "Hand") isMismatch = true;
 
             // 4. DETERMINISTIC RULE-BASED ENGINE (Switch Statement)
             string diagnosisResult = "Normal";
@@ -87,15 +96,15 @@ namespace XRayDiagnosticSystem.Controllers
                     case "Leg":
                         if (isAbnormal)
                         {
-                            diagnosisResult = "Potential Fracture";
-                            severity = "Critical";
+                            diagnosisResult = predictions.FirstOrDefault()?.Label ?? "Potential Fracture";
+                            severity = predictions.FirstOrDefault()?.Severity ?? "Critical";
                             recommendation = "IMMEDIATE ORTHOPEDIC REVIEW: Suspected cortical interruption. Immobilize joint and consult surgeon.";
-                            doctorComments += $"Findings suggest acute skeletal structural instability in the {bodyPart}.";
+                            doctorComments += $"Findings suggest acute skeletal structural instability in the {bodyPart}. Specific AI result: {diagnosisResult}.";
                         }
                         else
                         {
-                            diagnosisResult = "Normal";
-                            doctorComments += $"No visible fracture or joint displacement detected in the {bodyPart}.";
+                            diagnosisResult = predictions.FirstOrDefault()?.Label ?? "Healthy (No Issues)";
+                            doctorComments += $"No visible fracture or joint displacement detected in the {bodyPart}. Clinical status: Healthy.";
                         }
                         break;
 

@@ -5,16 +5,19 @@
 }
 
 <div class="row align-items-center mb-5">
-    <div class="col-md-8">
+    <div class="col-md-12">
         <h2 class="fw-bold">My Medical Records</h2>
         <p class="text-muted">View your diagnostic history and uploading new scans.</p>
     </div>
-    <div class="col-md-4 text-end">
-        <a asp-action="UploadScan" class="btn btn-premium py-2 px-4 rounded-pill shadow-sm">
-            <i class="fas fa-cloud-upload-alt me-2"></i> Upload New Scan
-        </a>
-    </div>
 </div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show mb-4" role="alert">
+        @TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
 
 <div class="row">
     @if (Model.Rows.Count == 0)

@@ -24,11 +24,11 @@ namespace XRayDiagnosticSystem.Controllers
                 patients.Add(new Patient
                 {
                     PatientId = Convert.ToInt32(row["PatientID"]),
-                    FullName = row["FullName"].ToString(),
+                    FullName = row["FullName"]?.ToString() ?? "",
                     Age = Convert.ToInt32(row["Age"]),
-                    Gender = row["Gender"].ToString(),
-                    ContactNumber = row["ContactNumber"].ToString(),
-                    Address = row["Address"].ToString(),
+                    Gender = row["Gender"]?.ToString(),
+                    ContactNumber = row["ContactNumber"]?.ToString(),
+                    Address = row["Address"]?.ToString(),
                     CreatedAt = Convert.ToDateTime(row["CreatedAt"])
                 });
             }
@@ -76,11 +76,11 @@ namespace XRayDiagnosticSystem.Controllers
             var patient = new Patient
             {
                 PatientId = Convert.ToInt32(row["PatientID"]),
-                FullName = row["FullName"].ToString(),
+                FullName = row["FullName"]?.ToString() ?? "",
                 Age = Convert.ToInt32(row["Age"]),
-                Gender = row["Gender"].ToString(),
-                ContactNumber = row["ContactNumber"].ToString(),
-                Address = row["Address"].ToString(),
+                Gender = row["Gender"]?.ToString(),
+                ContactNumber = row["ContactNumber"]?.ToString(),
+                Address = row["Address"]?.ToString(),
                 CreatedAt = Convert.ToDateTime(row["CreatedAt"])
             };
             return View(patient);

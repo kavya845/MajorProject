@@ -18,40 +18,50 @@
                 <div class="row g-3">
                     <div class="col-md-12">
                         <label class="form-label fw-bold">Full Name</label>
-                        <input asp-for="FullName" class="form-control" required />
+                        <input asp-for="FullName" class="form-control" required pattern="^[a-zA-Z\s]+$" title="Name should contain only letters" placeholder="Enter full name" />
+                        <span asp-validation-for="FullName" class="text-danger small"></span>
                     </div>
                     <div class="col-md-6">
                         <label class="form-label fw-bold">Username</label>
-                        <input asp-for="Username" class="form-control" required />
+                        <input asp-for="Username" class="form-control" required autocomplete="new-username" placeholder="Choose a username" />
+                        <span asp-validation-for="Username" class="text-danger small"></span>
                     </div>
                     <div class="col-md-6">
                         <label class="form-label fw-bold">Password</label>
                         <div class="input-group">
-                            <input asp-for="Password" type="password" id="password" class="form-control" required />
+                            <input asp-for="Password" type="password" id="password" class="form-control" required 
+                                   autocomplete="new-password" 
+                                   pattern="^(?=.*[A-Z])(?=.*\d).{5,}$" 
+                                   title="Minimum 5 characters, at least one capital letter and one number" 
+                                   placeholder="Min 5 chars, A-Z, 0-9" />
                             <button class="btn btn-outline-secondary" type="button" id="togglePassword">
                                 <i class="fas fa-eye" id="eyeIcon"></i>
                             </button>
                         </div>
+                        <span asp-validation-for="Password" class="text-danger small"></span>
                     </div>
                     <!-- Detailed demographics -->
                     <div class="col-md-6">
                         <label class="form-label">Age</label>
-                        <input asp-for="Age" class="form-control" required />
+                        <input asp-for="Age" class="form-control" required type="number" min="1" max="120" />
+                        <span asp-validation-for="Age" class="text-danger small"></span>
                     </div>
                     <div class="col-md-6">
                         <label class="form-label">Gender</label>
                         <select asp-for="Gender" class="form-select">
-                            <option>Male</option>
-                            <option>Female</option>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
                         </select>
                     </div>
                     <div class="col-md-12">
                         <label class="form-label">Contact Number</label>
-                        <input asp-for="ContactNumber" class="form-control" placeholder="+1 (555) 000-0000" />
+                        <input asp-for="ContactNumber" class="form-control" placeholder="10-digit phone number" required 
+                               pattern="\d{10}" title="Phone number must be exactly 10 digits" />
+                        <span asp-validation-for="ContactNumber" class="text-danger small"></span>
                     </div>
                     <div class="col-md-12">
                         <label class="form-label">Address</label>
-                        <input asp-for="Address" class="form-control" />
+                        <input asp-for="Address" class="form-control" placeholder="Optional" />
                     </div>
                 </div>
                 <div class="d-grid mt-4">
