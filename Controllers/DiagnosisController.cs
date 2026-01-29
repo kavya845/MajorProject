@@ -55,7 +55,7 @@ namespace XRayDiagnosticSystem.Controllers
 
             // 2. Perform Feature Analysis (Deterministic Mapping from AI Heuristics)
             var predictions = await _ml.PredictAsync(absPath);
-            bool isAbnormal = predictions.Any(p => p.Severity == "Critical" || p.Severity == "Moderate");
+            bool isAbnormal = predictions.Any(p => p.Severity == "Critical" || p.Severity == "Abnormal");
             string aiDetectedPart = predictions.FirstOrDefault()?.Anatomy ?? "Unknown";
 
             // 3. VISUAL SANITY CHECK (Strict Anatomical Enforcement)
@@ -83,8 +83,8 @@ namespace XRayDiagnosticSystem.Controllers
 
             if (isMismatch)
             {
-                diagnosisResult = "ANATOMICAL MISMATCH DETECTED";
-                severity = "Moderate";
+                diagnosisResult = "MISMATCH";
+                severity = "Mismatch";
                 recommendation = "ERROR: Please upload correct image for reference. The system detected a " + aiDetectedPart + " X-ray, but you selected " + bodyPart + ".";
                 doctorComments += "SAFETY ALERT: Visual profile mismatch. System refused to apply " + bodyPart + " rules to a scan appearing as " + aiDetectedPart + ".";
             }
@@ -136,7 +136,7 @@ namespace XRayDiagnosticSystem.Controllers
                 new SqlParameter("@Rec", recommendation)
             };
 
-            await _db.ExecuteNonQueryAsync("INSERT INTO hospital.Reports (XRayID, DiagnosisResult, DoctorComments, Confidence, Severity, Recommendations) VALUES (@XRayId, @Result, @Comments, @Conf, @Sev, @Rec)", pars);
+            await _db.ExecuteNonQueryAsync("INSERT INTO hospital.Reports (XRayID, DiagnosisResult, DoctorComments, Confidence, Severity, Recommendations) VALUES (@XRayId, @Result, @Comments, @Conf, @Sev, @Rec)", pars ?? Array.Empty<SqlParameter>());
             await _db.ExecuteNonQueryAsync("UPDATE hospital.XRays SET Status = 'Completed' WHERE XRayID = @XRayId", new SqlParameter[] { new SqlParameter("@XRayId", xRayId) });
 
             return RedirectToAction("Reports", new { id = xRayId });
@@ -171,7 +171,7 @@ namespace XRayDiagnosticSystem.Controllers
 
             sql += " ORDER BY r.GeneratedDate DESC";
 
-            var dt = await _db.ExecuteQueryAsync(sql, pars.ToArray());
+            var dt = await _db.ExecuteQueryAsync(sql, pars.Any() ? pars.ToArray() : Array.Empty<SqlParameter>());
             
             if (id.HasValue && dt.Rows.Count > 0)
             {

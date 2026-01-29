@@ -56,7 +56,7 @@ namespace XRayDiagnosticSystem.Controllers
                 return RedirectToAction("Index", "PatientPanel");
             }
 
-            ViewBag.Error = "Invalid credentials";
+            ViewBag.Error = "Invalid username or password. Please check your credentials and try again.";
             return View();
         }
 
@@ -94,7 +94,7 @@ namespace XRayDiagnosticSystem.Controllers
             // Audit Log
             await LogAudit("Register", "Patients", Convert.ToInt32(newId), $"New patient registered: {patient.FullName} (Username: {patient.Username})", "System");
             
-            // Auto login or redirect to login
+            TempData["Success"] = "Registration successful! You can now log in to your account.";
             return RedirectToAction("Login");
         }
 

@@ -1,91 +1,248 @@
 @model XRayDiagnosticSystem.Models.Patient
 @{
-    Layout = "_Layout";
-    ViewData["Title"] = "Patient Registration";
+    Layout = null;
 }
 
-<div class="row justify-content-center">
-    <div class="col-md-6">
-        <div class="glass-card fade-in p-4">
-            <h3 class="fw-bold mb-4 text-center">New Patient Registration</h3>
-            
-            @if (ViewBag.Error != null)
-            {
-                <div class="alert alert-danger">@ViewBag.Error</div>
-            }
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Patient Registration - X-Ray Core</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary: #0f172a;
+            --accent: #2563eb;
+            --bg: #f8fafc;
+            --card-width: 520px;
+        }
 
-            <form asp-action="Register" method="post">
-                <div class="row g-3">
-                    <div class="col-md-12">
-                        <label class="form-label fw-bold">Full Name</label>
-                        <input asp-for="FullName" class="form-control" required pattern="^[a-zA-Z\s]+$" title="Name should contain only letters" placeholder="Enter full name" />
-                        <span asp-validation-for="FullName" class="text-danger small"></span>
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label fw-bold">Username</label>
-                        <input asp-for="Username" class="form-control" required autocomplete="new-username" placeholder="Choose a username" />
-                        <span asp-validation-for="Username" class="text-danger small"></span>
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label fw-bold">Password</label>
-                        <div class="input-group">
-                            <input asp-for="Password" type="password" id="password" class="form-control" required 
-                                   autocomplete="new-password" 
-                                   pattern="^(?=.*[A-Z])(?=.*\d).{5,}$" 
-                                   title="Minimum 5 characters, at least one capital letter and one number" 
-                                   placeholder="Min 5 chars, A-Z, 0-9" />
-                            <button class="btn btn-outline-secondary" type="button" id="togglePassword">
-                                <i class="fas fa-eye" id="eyeIcon"></i>
-                            </button>
-                        </div>
-                        <span asp-validation-for="Password" class="text-danger small"></span>
-                    </div>
-                    <!-- Detailed demographics -->
-                    <div class="col-md-6">
-                        <label class="form-label">Age</label>
-                        <input asp-for="Age" class="form-control" required type="number" min="1" max="120" />
-                        <span asp-validation-for="Age" class="text-danger small"></span>
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label">Gender</label>
-                        <select asp-for="Gender" class="form-select">
-                            <option value="Male">Male</option>
-                            <option value="Female">Female</option>
-                        </select>
-                    </div>
-                    <div class="col-md-12">
-                        <label class="form-label">Contact Number</label>
-                        <input asp-for="ContactNumber" class="form-control" placeholder="10-digit phone number" required 
-                               pattern="\d{10}" title="Phone number must be exactly 10 digits" />
-                        <span asp-validation-for="ContactNumber" class="text-danger small"></span>
-                    </div>
-                    <div class="col-md-12">
-                        <label class="form-label">Address</label>
-                        <input asp-for="Address" class="form-control" placeholder="Optional" />
-                    </div>
-                </div>
-                <div class="d-grid mt-4">
-                    <button type="submit" class="btn btn-success py-2">Register Account</button>
-                </div>
-            </form>
-            <div class="text-center mt-3">
-                <a asp-action="Login">Already have an account? Login</a>
-            </div>
-        </div>
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+            padding: 40px 20px;
+        }
+
+        .auth-container {
+            width: 100%;
+            max-width: var(--card-width);
+            animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .register-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 28px;
+            padding: 2.5rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            width: 500px;
+            display:flex;
+            flex-direction:column;
+            align-items: center;
+            justify-content: center;
+            
+        }
+
+        .register-title {
+            font-weight: 800;
+            font-size: 1.75rem;
+            color: var(--primary);
+            letter-spacing: -0.02em;
+            margin-bottom: 0.5rem;
+            text-align: center;
+        }
+
+        .register-subtitle {
+            color: #64748b;
+            font-size: 0.95rem;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .form-label {
+            font-weight: 700;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .form-control, .form-select {
+            border: 1.5px solid #e2e8f0;
+            padding: 0.7rem 1rem;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            transition: all 0.2s;
+            background: #f8fafc;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+            background: white;
+        }
+
+        .btn-register {
+            background: var(--accent);
+            color: white;
+            font-weight: 700;
+            padding: 0.85rem;
+            border-radius: 14px;
+            border: none;
+            width: 100%;
+            margin-top: 1.5rem;
+            transition: all 0.2s;
+        }
+
+        .btn-register:hover {
+            filter: brightness(1.1);
+            transform: translateY(-1px);
+            box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.3);
+        }
+
+        .login-link {
+            margin-top: 1.5rem;
+            font-size: 0.9rem;
+            color: #64748b;
+            text-align: center;
+        }
+
+        .login-link a {
+            color: var(--accent);
+            font-weight: 700;
+            text-decoration: none;
+        }
+
+        .input-group-text {
+            background: #f8fafc;
+            border: 1.5px solid #e2e8f0;
+            border-left: none;
+            border-radius: 0 12px 12px 0;
+            cursor: pointer;
+        }
+
+        .password-input {
+            border-right: none;
+            border-radius: 12px 0 0 12px !important;
+        }
+
+        @@keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+<div style="position: absolute; top: 30px; left: 40px; color: white; z-index: 1000; display: flex; align-items: center; gap: 15px;">
+    <div style="background: var(--accent); width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.3);">
+        <i class="fas fa-microscope" style="font-size: 1.2rem;"></i>
+    </div>
+    <div style="display: flex; flex-direction: column; line-height: 1.1;">
+        <span style="font-size: 1.5rem; font-weight: 800; letter-spacing: -0.02em;">XRay Diagnostic</span>
+        <span style="font-size: 1.5rem; font-weight: 800; letter-spacing: -0.02em;">System</span>
     </div>
 </div>
 
-@section Scripts {
-    <script>
-        const togglePassword = document.querySelector('#togglePassword');
-        const password = document.querySelector('#password');
-        const eyeIcon = document.querySelector('#eyeIcon');
+<div class="auth-container">
+    <div class="register-card">
+        <h2 class="register-title">Create Account</h2>
+        <p class="register-subtitle">Join the X-Ray Core diagnostics network</p>
 
-        togglePassword.addEventListener('click', function (e) {
-            const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
-            password.setAttribute('type', type);
-            eyeIcon.classList.toggle('fa-eye');
-            eyeIcon.classList.toggle('fa-eye-slash');
-        });
-    </script>
-}
+        <div class="alert alert-info py-3 small rounded-4 mb-4 border-0 shadow-sm" style="background: rgba(37, 99, 235, 0.05);">
+            <div class="d-flex">
+                <i class="fas fa-info-circle text-accent fs-5 me-3 mt-1"></i>
+                <div>
+                    <strong class="d-block text-primary mb-1">New Patient Guidance</strong>
+                    <span class="text-muted">Registering allows you to upload your X-ray scans, receive AI-powered diagnostics, and maintain a secure digital medical history.</span>
+                </div>
+            </div>
+        </div>
+
+        @if (ViewBag.Error != null)
+        {
+            <div class="alert alert-danger py-2 small rounded-3 mb-4 text-center">@ViewBag.Error</div>
+        }
+
+        <form asp-action="Register" method="post">
+            <div class="row g-3">
+                <div class="col-12">
+                    <label class="form-label">Full Legal Name</label>
+                    <input asp-for="FullName" class="form-control" required pattern="^[a-zA-Z\s]+$" placeholder="John Doe" />
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">Username</label>
+                    <input asp-for="Username" value="" class="form-control" required autocomplete="off" placeholder="choose_id" />
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">Password</label>
+                    <div class="input-group">
+                        <input asp-for="Password" type="password" id="password" value="" class="form-control password-input" required placeholder="••••••••" autocomplete="new-password" />
+                        <span class="input-group-text" id="togglePassword">
+                            <i class="fas fa-eye text-muted" id="eyeIcon"></i>
+                        </span>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <label class="form-label">Age</label>
+                    <input asp-for="Age" class="form-control" required type="number" min="1" max="120" />
+                </div>
+
+                <div class="col-md-8">
+                    <label class="form-label">Gender Identity</label>
+                    <select asp-for="Gender" class="form-select">
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+
+                <div class="col-12">
+                    <label class="form-label">Primary Contact Number</label>
+                    <input asp-for="ContactNumber" class="form-control" placeholder="10-digit mobile" required pattern="\d{10}" />
+                </div>
+
+                <div class="col-12">
+                    <label class="form-label">Residential Address</label>
+                    <input asp-for="Address" class="form-control" placeholder="Optional" />
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-register">Register as Patient</button>
+            
+            <div class="login-link">
+                Already have an account? <a asp-action="Login">Sign In</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    const togglePassword = document.querySelector('#togglePassword');
+    const password = document.querySelector('#password');
+    const eyeIcon = document.querySelector('#eyeIcon');
+
+    togglePassword.addEventListener('click', function () {
+        const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
+        password.setAttribute('type', type);
+        eyeIcon.classList.toggle('fa-eye');
+        eyeIcon.classList.toggle('fa-eye-slash');
+    });
+</script>
+
+</body>
+</html>

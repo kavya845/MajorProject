@@ -41,7 +41,7 @@ namespace XRayDiagnosticSystem.Helpers
                         {
                             float cloudiness = CalculateDensity(bitmap, 0.2f, 0.2f, 0.4f, 0.7f); 
                             if (cloudiness > 0.75f) predictions.Add(new MLPrediction { Label = "Pulmonary Opacity", Probability = cloudiness, Severity = "Critical", Anatomy = "Chest" });
-                            else if (cloudiness > 0.60f) predictions.Add(new MLPrediction { Label = "Mild Haziness", Probability = cloudiness, Severity = "Moderate", Anatomy = "Chest" });
+                            else if (cloudiness > 0.60f) predictions.Add(new MLPrediction { Label = "Mild Haziness", Probability = cloudiness, Severity = "Abnormal", Anatomy = "Chest" });
                         }
                         else if (anatomy == "Leg" || anatomy == "Hand")
                         {
@@ -55,7 +55,7 @@ namespace XRayDiagnosticSystem.Helpers
                             if (adjustedEdges > 0.25f) 
                                 predictions.Add(new MLPrediction { Label = "Big Fracture Detected", Probability = Math.Min(adjustedEdges + 0.6f, 0.99f), Severity = "Critical", Anatomy = anatomy });
                             else if (adjustedEdges > 0.08f) 
-                                predictions.Add(new MLPrediction { Label = "Minor Bone Crack", Probability = Math.Min(adjustedEdges + 0.65f, 0.88f), Severity = "Moderate", Anatomy = anatomy });
+                                predictions.Add(new MLPrediction { Label = "Crack Detected", Probability = Math.Min(adjustedEdges + 0.65f, 0.88f), Severity = "Abnormal", Anatomy = anatomy });
                         }
                         
                         if (!predictions.Any())
@@ -66,7 +66,7 @@ namespace XRayDiagnosticSystem.Helpers
                 }
                 catch 
                 {
-                    predictions.Add(new MLPrediction { Label = "Image Interpretation Error", Probability = 0.5f, Severity = "Moderate", Anatomy = "Unknown" });
+                    predictions.Add(new MLPrediction { Label = "Image Interpretation Error", Probability = 0.5f, Severity = "Abnormal", Anatomy = "Unknown" });
                 }
 
                 return predictions;
@@ -107,8 +107,8 @@ namespace XRayDiagnosticSystem.Helpers
                         }
                         else if (name.Contains("fracture_medium") || name.Contains("pneumonia_medium"))
                         {
-                            string label = (anatomy == "Chest") ? "Early Onset Pneumonia" : "Minor Bone Crack";
-                            result.Add(new MLPrediction { Label = label, Probability = 0.95f, Severity = "Moderate", Anatomy = anatomy });
+                            string label = (anatomy == "Chest") ? "Early Onset Pneumonia" : "Crack Detected";
+                            result.Add(new MLPrediction { Label = label, Probability = 0.95f, Severity = "Abnormal", Anatomy = anatomy });
                         }
                         else if (name.Contains("normal") || name.Contains("healthy"))
                         {
