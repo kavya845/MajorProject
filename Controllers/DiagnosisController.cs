@@ -55,29 +55,40 @@ namespace XRayDiagnosticSystem.Controllers
 
             // 2. Perform Feature Analysis (Deterministic Mapping from AI Heuristics)
             var predictions = await _ml.PredictAsync(absPath);
-            bool isAbnormal = predictions.Any(p => p.Severity == "Critical" || p.Severity == "Moderate");
+            bool isAbnormal = predictions.Any(p => p.Severity == "Critical" || p.Severity == "Abnormal");
             string aiDetectedPart = predictions.FirstOrDefault()?.Anatomy ?? "Unknown";
 
-            // 3. VISUAL SANITY CHECK (Cross-reference Manual Selection with Image Scan)
-            bool isMismatch = false;
-            
-            // Exact matching required for Hand vs Leg
-            if (bodyPart == "Chest" && aiDetectedPart != "Chest") isMismatch = true;
-            else if (bodyPart == "Hand" && aiDetectedPart != "Hand") isMismatch = true;
-            else if (bodyPart == "Leg" && aiDetectedPart != "Leg") isMismatch = true;
+            // 3. ANATOMICAL VERIFICATION (Restore Strict Mismatch)
+            // If AI recognizes the anatomy, it MUST match the user selection.
+            // If AI is unsure (Unknown), trigger the specific failure message.
+            bool isMismatch = (aiDetectedPart != "Unknown" && aiDetectedPart != bodyPart);
 
-            // 4. DETERMINISTIC RULE-BASED ENGINE (Switch Statement)
+            // 4. DETERMINISTIC RULE-BASED ENGINE
             string diagnosisResult = "Normal";
             string severity = "Normal";
             string recommendation = "Routine follow-up prescribed.";
             string doctorComments = $"Visual Verification: {aiDetectedPart}. Clinical Context: {bodyPart} focus. ";
 
-            if (isMismatch)
+            if (predictions.Any(p => p.Label == "REUPLOAD"))
             {
-                diagnosisResult = "ANATOMICAL MISMATCH DETECTED";
-                severity = "Moderate";
-                recommendation = "ERROR: Please upload correct image for reference. The system detected a " + aiDetectedPart + " X-ray, but you selected " + bodyPart + ".";
-                doctorComments += "SAFETY ALERT: Visual profile mismatch. System refused to apply " + bodyPart + " rules to a scan appearing as " + aiDetectedPart + ".";
+                diagnosisResult = "reupload the image";
+                severity = "Mismatch";
+                recommendation = "Unable to get result: poor image quality. Please upload a clear, well-lit X-ray scan.";
+                doctorComments = "QUALITY ALERT: The uploaded image is too dark, washed out, or lacks sufficient contrast for diagnostic analysis. Please re-upload a high-quality scan.";
+            }
+            else if (aiDetectedPart == "Unknown")
+            {
+                diagnosisResult = "upload clear image";
+                severity = "Mismatch";
+                recommendation = "Unable to get result: unrecognizable anatomy profile. Please upload a clear, correctly oriented X-ray scan.";
+                doctorComments += "SAFETY ALERT: Image profile does not match any known anatomical baseline. Scan rejected. Please upload clear image.";
+            }
+            else if (isMismatch)
+            {
+                diagnosisResult = "MISMATCH";
+                severity = "Mismatch";
+                recommendation = $"ERROR: Anatomical mismatch detected. The system identified a {aiDetectedPart} X-ray, but you selected {bodyPart}. Please upload the correct image.";
+                doctorComments += $"SAFETY ALERT: Visual profile mismatch. System refused to apply {bodyPart} rules to a scan appearing as {aiDetectedPart}.";
             }
             else
             {
@@ -87,15 +98,15 @@ namespace XRayDiagnosticSystem.Controllers
                     case "Leg":
                         if (isAbnormal)
                         {
-                            diagnosisResult = "Potential Fracture";
-                            severity = "Critical";
+                            diagnosisResult = predictions.FirstOrDefault()?.Label ?? "Potential Fracture";
+                            severity = predictions.FirstOrDefault()?.Severity ?? "Critical";
                             recommendation = "IMMEDIATE ORTHOPEDIC REVIEW: Suspected cortical interruption. Immobilize joint and consult surgeon.";
-                            doctorComments += $"Findings suggest acute skeletal structural instability in the {bodyPart}.";
+                            doctorComments += $"Findings suggest acute skeletal structural instability in the {bodyPart}. AI result: {diagnosisResult}.";
                         }
                         else
                         {
-                            diagnosisResult = "Normal";
-                            doctorComments += $"No visible fracture or joint displacement detected in the {bodyPart}.";
+                            diagnosisResult = predictions.FirstOrDefault()?.Label ?? "Healthy (No Issues)";
+                            doctorComments += $"No visible fracture or joint displacement detected in the {bodyPart}. Clinical status: Healthy.";
                         }
                         break;
 
@@ -103,7 +114,7 @@ namespace XRayDiagnosticSystem.Controllers
                     default:
                         if (isAbnormal)
                         {
-                            diagnosisResult = "Pulmonary Infection";
+                            diagnosisResult = predictions.FirstOrDefault()?.Label ?? "Pulmonary Infection";
                             severity = "Critical";
                             recommendation = "IMMEDIATE RADIOLOGY VERIFICATION: Findings suggest extensive pulmonary consolidation. Possible pneumonia.";
                             doctorComments += "Increased lung opacity suggests high-density fluid accumulation.";
@@ -127,7 +138,7 @@ namespace XRayDiagnosticSystem.Controllers
                 new SqlParameter("@Rec", recommendation)
             };
 
-            await _db.ExecuteNonQueryAsync("INSERT INTO hospital.Reports (XRayID, DiagnosisResult, DoctorComments, Confidence, Severity, Recommendations) VALUES (@XRayId, @Result, @Comments, @Conf, @Sev, @Rec)", pars);
+            await _db.ExecuteNonQueryAsync("INSERT INTO hospital.Reports (XRayID, DiagnosisResult, DoctorComments, Confidence, Severity, Recommendations) VALUES (@XRayId, @Result, @Comments, @Conf, @Sev, @Rec)", pars ?? Array.Empty<SqlParameter>());
             await _db.ExecuteNonQueryAsync("UPDATE hospital.XRays SET Status = 'Completed' WHERE XRayID = @XRayId", new SqlParameter[] { new SqlParameter("@XRayId", xRayId) });
 
             return RedirectToAction("Reports", new { id = xRayId });
@@ -162,7 +173,7 @@ namespace XRayDiagnosticSystem.Controllers
 
             sql += " ORDER BY r.GeneratedDate DESC";
 
-            var dt = await _db.ExecuteQueryAsync(sql, pars.ToArray());
+            var dt = await _db.ExecuteQueryAsync(sql, pars.Any() ? pars.ToArray() : Array.Empty<SqlParameter>());
             
             if (id.HasValue && dt.Rows.Count > 0)
             {

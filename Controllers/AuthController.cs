@@ -56,7 +56,7 @@ namespace XRayDiagnosticSystem.Controllers
                 return RedirectToAction("Index", "PatientPanel");
             }
 
-            ViewBag.Error = "Invalid credentials";
+            ViewBag.Error = "Invalid username or password. Please check your credentials and try again.";
             return View();
         }
 
@@ -72,9 +72,11 @@ namespace XRayDiagnosticSystem.Controllers
             // Simple registration - assumes valid input
             // Check username uniqueness
             var check = await _db.ExecuteScalarAsync("SELECT COUNT(*) FROM hospital.Patients WHERE Username=@u", new SqlParameter[] { new SqlParameter("@u", patient.Username) });
-            if (Convert.ToInt32(check ?? 0) > 0)
+            var checkAdmin = await _db.ExecuteScalarAsync("SELECT COUNT(*) FROM hospital.Admins WHERE Username=@u", new SqlParameter[] { new SqlParameter("@u", patient.Username) });
+            
+            if (Convert.ToInt32(check ?? 0) > 0 || Convert.ToInt32(checkAdmin ?? 0) > 0)
             {
-                ViewBag.Error = "Username already exists";
+                ViewBag.Error = "This username is already taken. Please choose a unique one.";
                 return View(patient);
             }
 
@@ -94,7 +96,7 @@ namespace XRayDiagnosticSystem.Controllers
             // Audit Log
             await LogAudit("Register", "Patients", Convert.ToInt32(newId), $"New patient registered: {patient.FullName} (Username: {patient.Username})", "System");
             
-            // Auto login or redirect to login
+            TempData["Success"] = "Registration successful! You can now log in to your account.";
             return RedirectToAction("Login");
         }
 
@@ -132,6 +134,16 @@ namespace XRayDiagnosticSystem.Controllers
             {
                 // Silently fail audit logging to not disrupt user flow
             }
+        }
+
+        [HttpGet]
+        public async Task<JsonResult> CheckUsername(string username)
+        {
+            var pCheck = await _db.ExecuteScalarAsync("SELECT COUNT(*) FROM hospital.Patients WHERE Username=@u", new SqlParameter[] { new SqlParameter("@u", username) });
+            var aCheck = await _db.ExecuteScalarAsync("SELECT COUNT(*) FROM hospital.Admins WHERE Username=@u", new SqlParameter[] { new SqlParameter("@u", username) });
+            
+            bool isTaken = (Convert.ToInt32(pCheck ?? 0) > 0 || Convert.ToInt32(aCheck ?? 0) > 0);
+            return Json(new { isTaken = isTaken });
         }
     }
 }

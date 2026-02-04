@@ -1,0 +1,56 @@
+@model XRayDiagnosticSystem.Models.Patient
+@{
+    ViewData["Title"] = "Edit Profile";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="glass-card fade-in p-5">
+            <div class="text-center mb-4">
+                <div class="icon-circle bg-soft-blue text-primary mx-auto mb-3">
+                    <i class="fas fa-user-edit fa-2x"></i>
+                </div>
+                <h3 class="fw-bold">Edit Personal Information</h3>
+                <p class="text-muted">Update your contact details and demographics.</p>
+            </div>
+
+            <form asp-action="EditProfile" method="post">
+                <div class="row g-3">
+                    <div class="col-md-12">
+                        <label class="form-label fw-bold">Full Name</label>
+                        <input asp-for="FullName" class="form-control" required pattern="^[a-zA-Z\s]+$" title="Name should contain only letters" />
+                        <span asp-validation-for="FullName" class="text-danger small"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Age</label>
+                        <input asp-for="Age" class="form-control" required type="number" min="1" max="120" />
+                        <span asp-validation-for="Age" class="text-danger small"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Gender</label>
+                        <select asp-for="Gender" class="form-select">
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                        </select>
+                    </div>
+                    <div class="col-md-12">
+                        <label class="form-label fw-bold">Contact Number</label>
+                        <input asp-for="ContactNumber" class="form-control" required pattern="\d{10}" title="Phone number must be exactly 10 digits" />
+                        <span asp-validation-for="ContactNumber" class="text-danger small"></span>
+                    </div>
+                    <div class="col-md-12">
+                        <label class="form-label fw-bold">Address</label>
+                        <textarea asp-for="Address" class="form-control" rows="3"></textarea>
+                    </div>
+                </div>
+
+                <div class="d-grid mt-4">
+                    <button type="submit" class="btn btn-premium py-3">
+                        <i class="fas fa-save me-2"></i> Update Information
+                    </button>
+                    <a asp-action="Index" class="btn btn-link text-muted mt-2">Back to Dashboard</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
