@@ -175,16 +175,20 @@
             <div class="alert alert-danger py-2 small rounded-3 mb-4 text-center">@ViewBag.Error</div>
         }
 
-        <form asp-action="Register" method="post">
+        <form asp-action="Register" method="post" id="registerForm">
             <div class="row g-3">
                 <div class="col-12">
                     <label class="form-label">Full Legal Name</label>
-                    <input asp-for="FullName" class="form-control" required pattern="^[a-zA-Z\s]+$" placeholder="John Doe" />
+                    <input asp-for="FullName" id="fullName" class="form-control" required placeholder="John Doe" />
+                    <div id="nameFeedback" class="form-text text-danger d-none" style="font-size: 0.7rem; margin-top: 4px;">
+                        <i class="fas fa-info-circle me-1"></i>Please use letters only for the full name.
+                    </div>
                 </div>
 
                 <div class="col-md-6">
                     <label class="form-label">Username</label>
-                    <input asp-for="Username" value="" class="form-control" required autocomplete="off" placeholder="choose_id" />
+                    <input asp-for="Username" id="regUsername" value="" class="form-control" required autocomplete="off" placeholder="choose_id" />
+                    <div id="userFeedback" class="form-text mt-1 d-none" style="font-size: 0.7rem;"></div>
                 </div>
 
                 <div class="col-md-6">
@@ -194,6 +198,11 @@
                         <span class="input-group-text" id="togglePassword">
                             <i class="fas fa-eye text-muted" id="eyeIcon"></i>
                         </span>
+                    </div>
+                    <div id="passwordFeedback" class="form-text mt-2 d-none" style="font-size: 0.75rem;">
+                        <div id="pwLength" class="text-danger"><i class="fas fa-circle-notch me-1"></i>Min 5 characters</div>
+                        <div id="pwCap" class="text-danger"><i class="fas fa-circle-notch me-1"></i>One capital letter</div>
+                        <div id="pwDigit" class="text-danger"><i class="fas fa-circle-notch me-1"></i>One digit</div>
                     </div>
                 </div>
 
@@ -213,7 +222,10 @@
 
                 <div class="col-12">
                     <label class="form-label">Primary Contact Number</label>
-                    <input asp-for="ContactNumber" class="form-control" placeholder="10-digit mobile" required pattern="\d{10}" />
+                    <input asp-for="ContactNumber" id="contact" class="form-control" placeholder="10-digit mobile" required />
+                    <div id="contactFeedback" class="form-text text-danger d-none" style="font-size: 0.75rem; margin-top: 4px;">
+                        <i class="fas fa-exclamation-circle me-1"></i>Please enter exactly 10 digits.
+                    </div>
                 </div>
 
                 <div class="col-12">
@@ -222,7 +234,7 @@
                 </div>
             </div>
 
-            <button type="submit" class="btn btn-register">Register as Patient</button>
+            <button type="submit" id="regSubmitBtn" class="btn btn-register">Register as Patient</button>
             
             <div class="login-link">
                 Already have an account? <a asp-action="Login">Sign In</a>
@@ -232,15 +244,124 @@
 </div>
 
 <script>
-    const togglePassword = document.querySelector('#togglePassword');
-    const password = document.querySelector('#password');
-    const eyeIcon = document.querySelector('#eyeIcon');
+    document.addEventListener('DOMContentLoaded', function () {
+        const fullName = document.getElementById('fullName');
+        const nameFeedback = document.getElementById('nameFeedback');
+        const contact = document.getElementById('contact');
+        const contactFeedback = document.getElementById('contactFeedback');
+        const regUsername = document.getElementById('regUsername');
+        const userFeedback = document.getElementById('userFeedback');
+        const togglePassword = document.querySelector('#togglePassword');
+        const password = document.querySelector('#password');
+        const eyeIcon = document.querySelector('#eyeIcon');
+        const form = document.getElementById('registerForm');
+        
+        const passwordFeedback = document.getElementById('passwordFeedback');
+        const pwLength = document.getElementById('pwLength');
+        const pwCap = document.getElementById('pwCap');
+        const pwDigit = document.getElementById('pwDigit');
 
-    togglePassword.addEventListener('click', function () {
-        const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
-        password.setAttribute('type', type);
-        eyeIcon.classList.toggle('fa-eye');
-        eyeIcon.classList.toggle('fa-eye-slash');
+        // Regex for letters and spaces only
+        const nameRegex = /^[A-Za-z\s]*$/;
+        const contactRegex = /^\d{0,10}$/;
+
+        // Password Validation Logic
+        password.addEventListener('focus', () => passwordFeedback.classList.remove('d-none'));
+        password.addEventListener('input', function() {
+            const val = this.value;
+            const hasCap = /[A-Z]/.test(val);
+            const hasDigit = /\d/.test(val);
+            const isLongEnough = val.length >= 5;
+
+            updateStatus(pwLength, isLongEnough);
+            updateStatus(pwCap, hasCap);
+            updateStatus(pwDigit, hasDigit);
+
+            if (hasCap && hasDigit && isLongEnough) {
+                this.setCustomValidity('');
+            } else {
+                this.setCustomValidity('Invalid');
+            }
+        });
+
+        function updateStatus(el, isValid) {
+            if (isValid) {
+                el.classList.remove('text-danger');
+                el.classList.add('text-success');
+                el.querySelector('i').className = 'fas fa-check-circle me-1';
+            } else {
+                el.classList.remove('text-success');
+                el.classList.add('text-danger');
+                el.querySelector('i').className = 'fas fa-circle-notch me-1';
+            }
+        }
+
+        // Username uniqueness check with debounce
+        let timeout = null;
+        regUsername.addEventListener('input', function () {
+            clearTimeout(timeout);
+            const username = this.value.trim();
+            
+            if (username.length < 3) {
+                userFeedback.classList.add('d-none');
+                return;
+            }
+
+            timeout = setTimeout(() => {
+                fetch(`/Auth/CheckUsername?username=${encodeURIComponent(username)}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        userFeedback.classList.remove('d-none');
+                        if (data.isTaken) {
+                            userFeedback.innerText = "This username is already taken.";
+                            userFeedback.className = "form-text text-danger mt-1";
+                            regUsername.setCustomValidity('Taken');
+                        } else {
+                            userFeedback.innerText = "Username is available!";
+                            userFeedback.className = "form-text text-success mt-1";
+                            regUsername.setCustomValidity('');
+                        }
+                    });
+            }, 500);
+        });
+
+        fullName.addEventListener('input', function () {
+            if (!nameRegex.test(this.value)) {
+                this.value = this.value.replace(/[^A-Za-z\s]/g, '');
+                nameFeedback.classList.remove('d-none');
+                setTimeout(() => nameFeedback.classList.add('d-none'), 3000);
+            }
+        });
+
+        contact.addEventListener('input', function () {
+            this.value = this.value.replace(/\D/g, '').substring(0, 10);
+            
+            if (this.value.length === 10) {
+                contactFeedback.classList.add('d-none');
+                this.setCustomValidity('');
+            } else {
+                contactFeedback.classList.remove('d-none');
+                this.setCustomValidity('Invalid');
+            }
+        });
+
+        togglePassword.addEventListener('click', function () {
+            const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
+            password.setAttribute('type', type);
+            eyeIcon.classList.toggle('fa-eye');
+            eyeIcon.classList.toggle('fa-eye-slash');
+        });
+
+        form.addEventListener('submit', function (e) {
+            const regSubmitBtn = document.getElementById('regSubmitBtn');
+            if (contact.value.length !== 10 || !form.checkValidity()) {
+                e.preventDefault();
+                contactFeedback.classList.remove('d-none');
+            } else {
+                regSubmitBtn.disabled = true;
+                regSubmitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Registering...';
+            }
+        });
     });
 </script>
 

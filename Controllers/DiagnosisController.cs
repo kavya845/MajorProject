@@ -58,35 +58,37 @@ namespace XRayDiagnosticSystem.Controllers
             bool isAbnormal = predictions.Any(p => p.Severity == "Critical" || p.Severity == "Abnormal");
             string aiDetectedPart = predictions.FirstOrDefault()?.Anatomy ?? "Unknown";
 
-            // 3. VISUAL SANITY CHECK (Strict Anatomical Enforcement)
-            bool isMismatch = false;
-            
-            bool isPortrait = false;
-            using (var img = System.Drawing.Image.FromFile(absPath))
-            {
-                isPortrait = (float)img.Width / img.Height < 0.9f;
-            }
-            
-            // Rule 1: Chest selected, but AI saw limb (or vice-versa)
-            if (bodyPart == "Chest" && (aiDetectedPart == "Hand" || aiDetectedPart == "Leg")) isMismatch = true;
-            else if ((bodyPart == "Hand" || bodyPart == "Leg") && aiDetectedPart == "Chest" && !isPortrait) isMismatch = true;
-            
-            // Rule 2: Strict Extremity Matching (Hand vs Leg) per user request
-            else if (bodyPart == "Hand" && aiDetectedPart == "Leg") isMismatch = true;
-            else if (bodyPart == "Leg" && aiDetectedPart == "Hand") isMismatch = true;
+            // 3. ANATOMICAL VERIFICATION (Restore Strict Mismatch)
+            // If AI recognizes the anatomy, it MUST match the user selection.
+            // If AI is unsure (Unknown), trigger the specific failure message.
+            bool isMismatch = (aiDetectedPart != "Unknown" && aiDetectedPart != bodyPart);
 
-            // 4. DETERMINISTIC RULE-BASED ENGINE (Switch Statement)
+            // 4. DETERMINISTIC RULE-BASED ENGINE
             string diagnosisResult = "Normal";
             string severity = "Normal";
             string recommendation = "Routine follow-up prescribed.";
             string doctorComments = $"Visual Verification: {aiDetectedPart}. Clinical Context: {bodyPart} focus. ";
 
-            if (isMismatch)
+            if (predictions.Any(p => p.Label == "REUPLOAD"))
+            {
+                diagnosisResult = "reupload the image";
+                severity = "Mismatch";
+                recommendation = "Unable to get result: poor image quality. Please upload a clear, well-lit X-ray scan.";
+                doctorComments = "QUALITY ALERT: The uploaded image is too dark, washed out, or lacks sufficient contrast for diagnostic analysis. Please re-upload a high-quality scan.";
+            }
+            else if (aiDetectedPart == "Unknown")
+            {
+                diagnosisResult = "upload clear image";
+                severity = "Mismatch";
+                recommendation = "Unable to get result: unrecognizable anatomy profile. Please upload a clear, correctly oriented X-ray scan.";
+                doctorComments += "SAFETY ALERT: Image profile does not match any known anatomical baseline. Scan rejected. Please upload clear image.";
+            }
+            else if (isMismatch)
             {
                 diagnosisResult = "MISMATCH";
                 severity = "Mismatch";
-                recommendation = "ERROR: Please upload correct image for reference. The system detected a " + aiDetectedPart + " X-ray, but you selected " + bodyPart + ".";
-                doctorComments += "SAFETY ALERT: Visual profile mismatch. System refused to apply " + bodyPart + " rules to a scan appearing as " + aiDetectedPart + ".";
+                recommendation = $"ERROR: Anatomical mismatch detected. The system identified a {aiDetectedPart} X-ray, but you selected {bodyPart}. Please upload the correct image.";
+                doctorComments += $"SAFETY ALERT: Visual profile mismatch. System refused to apply {bodyPart} rules to a scan appearing as {aiDetectedPart}.";
             }
             else
             {
@@ -99,7 +101,7 @@ namespace XRayDiagnosticSystem.Controllers
                             diagnosisResult = predictions.FirstOrDefault()?.Label ?? "Potential Fracture";
                             severity = predictions.FirstOrDefault()?.Severity ?? "Critical";
                             recommendation = "IMMEDIATE ORTHOPEDIC REVIEW: Suspected cortical interruption. Immobilize joint and consult surgeon.";
-                            doctorComments += $"Findings suggest acute skeletal structural instability in the {bodyPart}. Specific AI result: {diagnosisResult}.";
+                            doctorComments += $"Findings suggest acute skeletal structural instability in the {bodyPart}. AI result: {diagnosisResult}.";
                         }
                         else
                         {
@@ -112,7 +114,7 @@ namespace XRayDiagnosticSystem.Controllers
                     default:
                         if (isAbnormal)
                         {
-                            diagnosisResult = "Pulmonary Infection";
+                            diagnosisResult = predictions.FirstOrDefault()?.Label ?? "Pulmonary Infection";
                             severity = "Critical";
                             recommendation = "IMMEDIATE RADIOLOGY VERIFICATION: Findings suggest extensive pulmonary consolidation. Possible pneumonia.";
                             doctorComments += "Increased lung opacity suggests high-density fluid accumulation.";

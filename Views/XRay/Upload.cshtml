@@ -38,32 +38,33 @@
             <h2 class="text-center mb-4" style="color: var(--medical-blue);">
                 <i class="fas fa-notes-medical me-2"></i>Radiology Intake
             </h2>
-            <p class="text-center text-muted mb-5">Ensure clinical metadata is accurate before starting zero-click analysis.</p>
+            <p class="text-center text-muted mb-5">Analyze any X-ray (Hand, Chest, Leg). Our ML.NET engine performs real-time anatomical verification to prevent diagnostic errors.</p>
 
-            <form asp-action="Upload" method="post" enctype="multipart/form-data">
+            <form asp-action="Upload" method="post" enctype="multipart/form-data" id="uploadForm" class="needs-validation" novalidate>
                 <div class="mb-4">
                     <label class="form-label">Patient Record</label>
-                    <select name="patientId" class="form-select p-3" required>
+                    <select name="patientId" id="patientId" class="form-select p-3" required>
                         <option value="">-- Select Patient --</option>
                         @foreach (System.Data.DataRow patient in ViewBag.Patients)
                         {
                             <option value="@patient["PatientID"]">@patient["FullName"] (@patient["PatientID"])</option>
                         }
                     </select>
+                    <div class="invalid-feedback">Please select a patient for this diagnostic record.</div>
                 </div>
 
                 <div class="mb-4">
-                    <label class="form-label">Body Part Focus (Mandatory)</label>
+                    <label class="form-label">Anatomical Body Part Focus (Strict Verification)</label>
                     <div class="d-flex gap-3">
-                        <div class="form-check border p-3 rounded-3 flex-fill">
-                            <input class="form-check-input ms-1" type="radio" name="bodyPart" id="partChest" value="Chest" required>
+                        <div class="form-check border p-3 rounded-3 flex-fill bg-light">
+                            <input class="form-check-input ms-1" type="radio" name="bodyPart" id="partChest" value="Chest" checked required>
                             <label class="form-check-label ms-4 fw-bold" for="partChest">Chest</label>
                         </div>
-                        <div class="form-check border p-3 rounded-3 flex-fill">
+                        <div class="form-check border p-3 rounded-3 flex-fill bg-light">
                             <input class="form-check-input ms-1" type="radio" name="bodyPart" id="partHand" value="Hand" required>
                             <label class="form-check-label ms-4 fw-bold" for="partHand">Hand</label>
                         </div>
-                        <div class="form-check border p-3 rounded-3 flex-fill">
+                        <div class="form-check border p-3 rounded-3 flex-fill bg-light">
                             <input class="form-check-input ms-1" type="radio" name="bodyPart" id="partLeg" value="Leg" required>
                             <label class="form-check-label ms-4 fw-bold" for="partLeg">Leg</label>
                         </div>
@@ -72,22 +73,78 @@
 
                 <div class="mb-4">
                     <label class="form-label">X-Ray Imagery</label>
-                    <input type="file" name="xRayImage" class="form-control p-2" required />
+                    <input type="file" name="xRayImage" id="xRayImage" class="form-control p-2" accept=".jpg,.jpeg,.png" required />
+                    <div id="fileFeedback" class="form-text text-muted mt-2">Maximum file size: 10MB. Formats: JPG, PNG.</div>
+                    <div class="invalid-feedback" id="fileError">Please select a valid X-ray image file.</div>
                 </div>
 
                 @if (!ViewData.ModelState.IsValid)
                 {
-                    <div class="alert alert-danger py-2 small">
+                    <div class="alert alert-danger py-3 small rounded-4 mt-3">
+                        <i class="fas fa-exclamation-circle me-2"></i>
                         @Html.ValidationSummary(false, "")
                     </div>
                 }
 
                 <div class="d-grid mt-5">
-                    <button type="submit" class="btn btn-medical py-3 fs-5 shadow-sm">
-                        Generate Diagnostic Report
+                    <button type="submit" id="submitBtn" class="btn btn-medical py-3 fs-5 shadow-sm">
+                        <span id="btnText">Generate Diagnostic Report</span>
+                        <span id="btnLoading" class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
                     </button>
                 </div>
             </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    (function () {
+        'use strict'
+        const form = document.getElementById('uploadForm');
+        const fileInput = document.getElementById('xRayImage');
+        const fileError = document.getElementById('fileError');
+        const submitBtn = document.getElementById('submitBtn');
+        const btnText = document.getElementById('btnText');
+        const btnLoading = document.getElementById('btnLoading');
+
+        // Bootstrap validation
+        form.addEventListener('submit', function (event) {
+            if (!form.checkValidity()) {
+                event.preventDefault();
+                event.stopPropagation();
+            } else {
+                // Show loading state
+                submitBtn.disabled = true;
+                btnText.innerText = "Analyzing Scan...";
+                btnLoading.classList.remove('d-none');
+            }
+            form.classList.add('was-validated');
+        }, false);
+
+        // File validation
+        fileInput.addEventListener('change', function () {
+            const file = this.files[0];
+            if (file) {
+                const fileSize = file.size / 1024 / 1024; // MB
+                const allowedExtensions = ['jpg', 'jpeg', 'png'];
+                const fileExtension = file.name.split('.').pop().toLowerCase();
+
+                if (fileSize > 10) {
+                    fileError.innerText = "File is too large! Please upload an image smaller than 10MB.";
+                    this.value = ''; // Reset input
+                    this.setCustomValidity('Too large');
+                } else if (!allowedExtensions.includes(fileExtension)) {
+                    fileError.innerText = "Invalid file type. Please upload a JPG or PNG image.";
+                    this.value = ''; // Reset input
+                    this.setCustomValidity('Invalid type');
+                } else {
+                    this.setCustomValidity('');
+                    fileError.innerText = "Please select a valid X-ray image file.";
+                }
+            }
+        });
+    })();
+</script>
         </div>
     </div>
 </div>

@@ -30,18 +30,6 @@ namespace XRayDiagnosticSystem.Controllers
         {
             if (xRayImage != null && xRayImage.Length > 0)
             {
-                // 1. Data Integrity Validation (Filename Keywords)
-                string fileName = xRayImage.FileName.ToLower();
-                string[] mismatches = { "hand", "arm", "leg", "foot", "finger", "toe", "joint" };
-                
-                if (bodyPart == "Chest" && mismatches.Any(m => fileName.Contains(m)))
-                {
-                    ModelState.AddModelError("", "Error: Uploaded file name does not match the selected Body Part Focus.");
-                    var dtPatients = await _db.ExecuteQueryAsync("SELECT PatientID, FullName FROM Patients");
-                    ViewBag.Patients = dtPatients.Rows;
-                    return View();
-                }
-
                 string uploadsFolder = Path.Combine(_env.WebRootPath, "uploads");
                 if (!Directory.Exists(uploadsFolder)) Directory.CreateDirectory(uploadsFolder);
 
